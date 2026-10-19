@@ -1,59 +1,79 @@
 # TaskPlanner
 
-An iPhone task planner. You set up your usual week once, then add tasks, and the app fits them around your routine.
+An iPhone task planner. You set up your usual week once, add tasks, and the app fits them around your routine. Chores repeat on their own, and a Time tab shows where your hours went based on what you log.
 
-Design mockups: https://claude.ai/artifact/AQBSJFthum7T4L2X14unnw (the `design/` folder has the source for each screen)
+It's a web app (PWA): plain HTML, CSS and JavaScript, no build step. It works offline once it has loaded, and all data stays on your phone in `localStorage`.
 
-## Screens
+Design mockups: https://claude.ai/artifact/AQBSJFthum7T4L2X14unnw (source in `design/`)
+
+## Install on iPhone
+
+1. Open the app's GitHub Pages URL in **Safari**.
+2. Tap **Share → Add to Home Screen**.
+3. Open it from the home screen icon. It runs full-screen like a normal app.
+
+## Tabs
 
 | Tab | What it does |
 |---|---|
-| **Today** | Timeline of the day with routine blocks and tasks, plus an "Anytime today" checklist. Free gaps show as "tap to fill." |
-| **Week** | 7-day grid. Work, routine and tasks shown in different colors. |
-| **Chores** | Things that repeat on their own (weekly, every N days, specific weekdays). Grouped as Overdue / This week / Later. |
-| **Time** | Where your hours went by category (work, driving, gym, chores, errands), compared with the last period. |
-| **Routine** | Your weekly schedule: work hours, gym, sleep, and the hours tasks are allowed in. |
+| **Today** | Timeline of the day with routine blocks, tasks and chores. "Anytime" list for things with no set time. Free gaps show as "tap to add". Overdue tasks and chores appear here. |
+| **Week** | 7-day grid. Tap a day to open it. |
+| **Chores** | Repeating chores grouped as Overdue / Today / This week / Later. |
+| **Time** | Time you've logged, by category, for a week or month, compared with the previous period. |
+| **Routine** | Your usual week, scheduling hours, categories, and backup/restore. |
 
 ## Adding a task
 
-1. Type the task (e.g. "Groceries") and pick a duration.
-2. Choose how it gets scheduled:
-   - **Find a time for me**: the app suggests open slots that fit.
-   - **I'll pick a time**: choose day and start time; warns about overlaps.
-   - **Just add to a day**: no set time, goes on that day's Anytime list.
+1. Type the task and pick how long it takes.
+2. Choose how to schedule it:
+   - **Find a time for me** suggests up to 3 open slots in the next 2 weeks.
+   - **I'll pick a time** lets you choose the day and time, and warns about overlaps.
+   - **Just add to a day** puts it on that day's Anytime list.
+
+Tap any task to mark it done, find a new time, move it to Anytime, edit or delete it.
 
 ## Chores
 
-- Repeat rules: every N days/weeks/months, or specific weekdays.
-- Each chore is **Auto** (app places it), **Fixed** (always the same time) or **Anytime**.
-- Checking one off schedules the next one from the completion date.
-- Missed chores move to **Overdue** with a "Find time" button.
+- Repeat every N days/weeks/months, or on specific weekdays (e.g. trash Tue & Fri).
+- When due: **Find a time for me** (placed in a free gap), **Same time each time**, or **Anytime that day**.
+- Marking one done schedules the next. Interval chores count from the day you did it.
+- Missed chores go to **Overdue** with a **Find time** button. You can also **Skip** one.
 
 ## Time tracking
 
-Time is collected three ways:
-1. Routine blocks (work, gym) count automatically.
-2. Finishing a task asks how long it actually took.
-3. A start/stop timer for anything else (e.g. driving).
+Nothing is tracked automatically. Time comes only from what you log:
 
-The app compares planned vs. actual and suggests better durations ("Groceries took 1h 05m on average; plan 1h next time?").
+- **Log time** chips (Work, Driving, Sleep, Gym, …) open a quick entry with start and end times. Sleep handles overnight (11 PM → 7 AM).
+- When you finish a task or chore, the app asks how long it took. You can add that to Time or skip it.
+- You can add your own categories, e.g. Study.
 
-## Data model (draft)
+The **Planned vs. actual** card spots tasks or chores that keep taking longer or shorter than planned, and offers to adjust the duration.
+
+## Scheduling rules
+
+- Tasks are only placed between your scheduling hours (default 8 AM to 9 PM) and around your routine.
+- "Breathing room" (default 15 min) is kept around everything.
+- Suggestions: the soonest opening, the one with the most free time around it, and the next opening.
+
+## Files
 
 ```
-RoutineBlock { id, name, category, days[], start, end }
-Task         { id, title, durationMin, mode: auto|fixed|anytime, date?, start?, done, actualMin? }
-Chore        { id, title, durationMin, repeat: {every, unit} | {weekdays[]}, mode, lastDone, nextDue }
-TimeEntry    { id, category, start, end, source: routine|task|timer }
-Settings     { schedulingWindow: {start, end}, gapMin }
+index.html     app shell
+styles.css     styles
+app.js         all app logic (state, scheduling, views, sheets)
+sw.js          service worker for offline use
+manifest.json  home-screen app settings
+icons/         app icons
+design/        design mockup source
 ```
 
-## Scheduling ("Find a time")
+## Data model
 
-1. Build the free slots for the next 7 days: the scheduling window minus routine blocks and placed tasks, with the gap padding.
-2. Keep slots at least as long as the task.
-3. Rank them: soonest first, then longest gap; offer the top 3.
+```
+RoutineBlock { id, name, category, days[0-6], start, end }      // times = minutes after midnight
+Task         { id, title, durationMin, category, date, start|null, mode: auto|fixed|anytime, done, actualMin? }
+Chore        { id, title, durationMin, category, repeat, mode, time?, nextDue, slot?, doneDates[], history[] }
+TimeEntry    { id, category, date, start, minutes, note, source: manual|task|chore }
+```
 
-## Status
-
-Design stage. Next step: build it as a PWA (HTML/JS, local storage, service worker), same as the other iPhone apps.
+Use **Routine → Export backup** now and then. Clearing Safari's website data deletes everything.
