@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Add a task</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&amp;family=DM+Sans:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#2F5BEA}a:hover{color:#1E3FB0}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #6B7280; font-family: 'DM Sans', sans-serif; color: #15171C; display: flex; flex-direction: column; overflow: hidden">
+  <div style="height: 54px; flex-shrink: 0"></div>
+  <div style="flex: 1; background: #FFFFFF; border-radius: 24px 24px 0 0; display: flex; flex-direction: column; padding: 8px 20px 34px; gap: 16px; min-height: 0">
+    <div style="display: flex; justify-content: center"><div style="width: 40px; height: 5px; border-radius: 3px; background: #D3D8E0"></div></div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center">
+      <a href="Main.dc.html" style="min-height: 44px; display: flex; align-items: center; font-size: 16px; color: #5A6170; text-decoration: none">Cancel</a>
+      <h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600">New task</h1>
+      <div style="width: 52px"></div>
+    </div>
+
+    <label style="display: flex; flex-direction: column; gap: 6px">
+      <span style="font-size: 13px; font-weight: 600; color: #5A6170">What needs doing?</span>
+      <input type="text" value="Groceries" style="height: 52px; border: 1.5px solid #D3D8E0; border-radius: 14px; padding: 0 14px; font-family: 'DM Sans', sans-serif; font-size: 18px; font-weight: 500; color: #15171C; outline: none">
+    </label>
+
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <span style="font-size: 13px; font-weight: 600; color: #5A6170">How long?</span>
+      <div style="display: flex; gap: 8px">
+        <sc-for list="{{durs}}" as="d" hint-placeholder-count="5">
+          <button onClick="{{d.pick}}" aria-pressed="{{d.on}}" style="flex: 1; height: 40px; border-radius: 12px; border: 1.5px solid {{d.border}}; background: {{d.bg}}; color: {{d.fg}}; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600">{{d.label}}</button>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <span style="font-size: 13px; font-weight: 600; color: #5A6170">When?</span>
+      <sc-for list="{{modes}}" as="m" hint-placeholder-count="3">
+        <button onClick="{{m.pick}}" aria-pressed="{{m.on}}" style="min-height: 56px; border-radius: 14px; border: 1.5px solid {{m.border}}; background: {{m.bg}}; padding: 8px 14px; display: flex; align-items: center; gap: 12px; text-align: left; font-family: 'DM Sans', sans-serif; color: #15171C">
+          <span style="width: 20px; height: 20px; border-radius: 50%; border: 2px solid {{m.border}}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-sizing: border-box">
+            <span style="width: 10px; height: 10px; border-radius: 50%; background: {{m.dot}}"></span>
+          </span>
+          <span style="display: flex; flex-direction: column; gap: 1px">
+            <span style="font-size: 16px; font-weight: 600">{{m.title}}</span>
+            <span style="font-size: 13px; color: #5A6170">{{m.sub}}</span>
+          </span>
+        </button>
+      </sc-for>
+    </div>
+
+    <sc-if value="{{isAuto}}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <span style="font-size: 13px; font-weight: 600; color: #5A6170">Open slots that fit 45 min</span>
+        <sc-for list="{{slots}}" as="s" hint-placeholder-count="3">
+          <button onClick="{{s.pick}}" style="min-height: 48px; border-radius: 12px; border: 0; background: {{s.bg}}; color: {{s.fg}}; padding: 0 14px; display: flex; align-items: center; justify-content: space-between; font-family: 'DM Sans', sans-serif">
+            <span style="font-size: 15px; font-weight: 600">{{s.time}}</span>
+            <span style="font-size: 12px; opacity: 0.85">{{s.why}}</span>
+          </button>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isPick}}" hint-placeholder-val="{{ false }}">
+      <div style="background: #F3F5F8; border-radius: 14px; padding: 4px 14px">
+        <div style="min-height: 48px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #E3E7ED; font-size: 15px"><span>Day</span><span style="font-weight: 600">Today, Oct 18</span></div>
+        <div style="min-height: 48px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #E3E7ED; font-size: 15px"><span>Starts</span><span style="font-weight: 600">11:00 AM</span></div>
+        <div style="min-height: 44px; display: flex; align-items: center; gap: 8px; font-size: 13px; color: #9A3412">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16v.5"></path></svg>
+          Overlaps Lunch by 15 min
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isAny}}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <span style="font-size: 13px; font-weight: 600; color: #5A6170">Goes on the Anytime list for</span>
+        <div style="display: flex; gap: 8px">
+          <button style="flex: 1; height: 44px; border-radius: 12px; border: 0; background: #15171C; color: #FFFFFF; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600">Today</button>
+          <button style="flex: 1; height: 44px; border-radius: 12px; border: 0; background: #F3F5F8; color: #15171C; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600">Tomorrow</button>
+          <button style="flex: 1; height: 44px; border-radius: 12px; border: 0; background: #F3F5F8; color: #15171C; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600">This week</button>
+        </div>
+      </div>
+    </sc-if>
+
+    <div style="flex: 1"></div>
+    <a href="Main.dc.html" style="height: 54px; flex-shrink: 0; border-radius: 16px; background: {{accent}}; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; text-decoration: none">{{cta}}</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#2F5BEA","options":["#2F5BEA","#0F7B6C","#7C3AED","#D9480F"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { mode: 'auto', dur: '45m', slot: 0 };
+  }
+  renderVals() {
+    const accent = this.props.accent ?? '#2F5BEA';
+    const { mode, dur, slot } = this.state;
+    const durs = ['15m', '30m', '45m', '1h', '2h'].map((l) => {
+      const on = l === dur;
+      return { label: l, on: on ? 'true' : 'false', bg: on ? '#15171C' : '#FFFFFF', fg: on ? '#FFFFFF' : '#15171C', border: on ? '#15171C' : '#D3D8E0', pick: () => this.setState({ dur: l }) };
+    });
+    const defs = [
+      { id: 'auto', title: 'Find a time for me', sub: 'Fits it into a free gap in your week' },
+      { id: 'pick', title: 'I’ll pick a time', sub: 'Choose the day and start time' },
+      { id: 'any', title: 'Just add to a day', sub: 'No set time — goes on the Anytime list' }
+    ];
+    const modes = defs.map((m) => {
+      const on = m.id === mode;
+      return { ...m, on: on ? 'true' : 'false', border: on ? accent : '#D3D8E0', bg: on ? '#F4F7FF' : '#FFFFFF', dot: on ? accent : 'transparent', pick: () => this.setState({ mode: m.id }) };
+    });
+    const slotDefs = [
+      { time: 'Today · 10:30 AM', why: 'Soonest, after gym' },
+      { time: 'Today · 3:00 PM', why: 'Longest free gap' },
+      { time: 'Mon · 5:15 PM', why: 'On the way home' }
+    ];
+    const slots = slotDefs.map((s, i) => ({ ...s, bg: i === slot ? accent : '#F3F5F8', fg: i === slot ? '#FFFFFF' : '#15171C', pick: () => this.setState({ slot: i }) }));
+    const cta = mode === 'auto' ? 'Add at ' + slotDefs[slot].time.split('· ')[1] : mode === 'pick' ? 'Add at 11:00 AM' : 'Add to Today';
+    return { accent, durs, modes, slots, cta, isAuto: mode === 'auto', isPick: mode === 'pick', isAny: mode === 'any' };
+  }
+}
+</script>
+</body>
+</html>

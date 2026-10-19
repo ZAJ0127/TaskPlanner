@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Chores</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&amp;family=DM+Sans:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#2F5BEA}a:hover{color:#1E3FB0}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #F3F5F8; font-family: 'DM Sans', sans-serif; color: #15171C; display: flex; flex-direction: column; position: relative; overflow: hidden">
+
+  <div style="padding: 56px 20px 12px; display: flex; flex-direction: column; gap: 4px">
+    <div style="font-size: 14px; font-weight: 500; color: #5A6170">Repeats on its own · planner finds the time</div>
+    <h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 34px; font-weight: 700; letter-spacing: -0.5px">Chores</h1>
+  </div>
+
+  <div style="display: flex; gap: 8px; padding: 0 16px 14px">
+    <span style="height: 32px; padding: 0 12px; border-radius: 99px; background: #FFEDD5; color: #9A3412; display: flex; align-items: center; font-size: 13px; font-weight: 600">{{overdueLabel}}</span>
+    <span style="height: 32px; padding: 0 12px; border-radius: 99px; background: #FFFFFF; color: #15171C; display: flex; align-items: center; font-size: 13px; font-weight: 600">{{weekLabel}}</span>
+  </div>
+
+  <div style="flex: 1; display: flex; flex-direction: column; gap: 14px; padding: 0 16px; min-height: 0; overflow: hidden">
+    <sc-for list="{{groups}}" as="g" hint-placeholder-count="3">
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <h2 style="margin: 0 4px; font-size: 13px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; color: #5A6170">{{g.title}}</h2>
+        <div style="background: #FFFFFF; border-radius: 16px; display: flex; flex-direction: column">
+          <sc-for list="{{g.items}}" as="c" hint-placeholder-count="2">
+            <div style="min-height: 60px; padding: 8px 14px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #EEF1F5">
+              <button onClick="{{c.toggle}}" aria-label="{{c.aria}}" style="width: 28px; height: 28px; flex-shrink: 0; border-radius: 50%; border: 2px solid {{c.ring}}; background: {{c.fill}}; display: flex; align-items: center; justify-content: center; padding: 0">
+                <sc-if value="{{c.done}}" hint-placeholder-val="{{ false }}">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg>
+                </sc-if>
+              </button>
+              <div style="flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0">
+                <span style="font-size: 16px; font-weight: 600; color: {{c.nameColor}}; text-decoration: {{c.strike}}">{{c.name}}</span>
+                <span style="font-size: 13px; color: {{c.subColor}}">{{c.sub}}</span>
+              </div>
+              <span style="font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 99px; background: {{c.tagBg}}; color: {{c.tagFg}}; flex-shrink: 0">{{c.tag}}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+
+  <button aria-label="Add chore" style="position: absolute; right: 20px; bottom: 104px; width: 60px; height: 60px; border: 0; border-radius: 20px; background: #15171C; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(21,23,28,0.25)">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+  </button>
+
+  <nav style="height: 84px; flex-shrink: 0; background: #FFFFFF; border-top: 1px solid #E3E7ED; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding-bottom: 20px; box-sizing: border-box">
+    <a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #7A8190; font-size: 11px; font-weight: 500">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+      Today
+    </a>
+    <a href="Week.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #7A8190; font-size: 11px; font-weight: 500">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg>
+      Week
+    </a>
+    <a href="Chores.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: {{accent}}; font-size: 11px; font-weight: 600">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"></path><path d="M5 10v10h14V10"></path><path d="M10 20v-5h4v5"></path></svg>
+      Chores
+    </a>
+    <a href="Insights.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #7A8190; font-size: 11px; font-weight: 500">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"></path></svg>
+      Time
+    </a>
+    <a href="Schedule.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #7A8190; font-size: 11px; font-weight: 500">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h7"></path></svg>
+      Routine
+    </a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#2F5BEA","options":["#2F5BEA","#0F7B6C","#7C3AED","#D9480F"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { done: {} };
+  }
+  renderVals() {
+    const accent = this.props.accent ?? '#2F5BEA';
+    const done = this.state.done;
+    const defs = [
+      { g: 'Overdue', id: 'vac', name: 'Vacuum', sub: 'Every week · 2 days late', next: 'Next: Sun, Oct 25', tag: 'Find time', late: true },
+      { g: 'This week', id: 'laundry', name: 'Laundry', sub: 'Every week · Mon 7:30 PM', next: 'Next: Mon, Oct 26', tag: 'Auto' },
+      { g: 'This week', id: 'trash', name: 'Take out trash', sub: 'Tue & Fri · 9:00 PM', next: 'Next: Fri, Oct 23', tag: 'Fixed' },
+      { g: 'This week', id: 'plants', name: 'Water plants', sub: 'Every 3 days · Wed, anytime', next: 'Next: Sat, Oct 24', tag: 'Anytime' },
+      { g: 'Later', id: 'sheets', name: 'Change bedsheets', sub: 'Every 2 weeks · Sat, Oct 31', next: 'Next: Sat, Nov 14', tag: 'Auto' },
+      { g: 'Later', id: 'filter', name: 'Replace AC filter', sub: 'Every 3 months · Jan 12', next: 'Next: Apr 12', tag: 'Auto' }
+    ];
+    const tagStyle = (c) => c.late ? ['#FFEDD5', '#9A3412'] : c.tag === 'Fixed' ? ['#E3E7ED', '#15171C'] : c.tag === 'Anytime' ? ['#F3F5F8', '#5A6170'] : ['#E8EEFF', '#1E3FB0'];
+    const item = (c) => {
+      const d = !!done[c.id];
+      const ts = d ? ['#E6F4EA', '#1E6B3A'] : tagStyle(c);
+      return {
+        name: c.name, done: d,
+        sub: d ? 'Done · ' + c.next : c.sub,
+        tag: d ? 'Done' : c.tag, tagBg: ts[0], tagFg: ts[1],
+        ring: d ? accent : (c.late ? '#C2410C' : '#B4BCC8'),
+        fill: d ? accent : 'transparent',
+        nameColor: d ? '#7A8190' : '#15171C', strike: d ? 'line-through' : 'none',
+        subColor: (!d && c.late) ? '#9A3412' : '#5A6170',
+        aria: (d ? 'Undo ' : 'Mark done: ') + c.name,
+        toggle: () => this.setState({ done: { ...done, [c.id]: !d } })
+      };
+    };
+    const groups = ['Overdue', 'This week', 'Later'].map((t) => ({ title: t, items: defs.filter((c) => c.g === t).map(item) }));
+    const overdue = defs.filter((c) => c.late && !done[c.id]).length;
+    const week = defs.filter((c) => c.g === 'This week' && !done[c.id]).length;
+    return { accent, groups, overdueLabel: overdue + ' overdue', weekLabel: week + ' due this week' };
+  }
+}
+</script>
+</body>
+</html>

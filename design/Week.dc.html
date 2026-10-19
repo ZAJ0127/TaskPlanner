@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Week view</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&amp;family=DM+Sans:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#2F5BEA}a:hover{color:#1E3FB0}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #F3F5F8; font-family: 'DM Sans', sans-serif; color: #15171C; display: flex; flex-direction: column; position: relative; overflow: hidden">
+
+  <div style="padding: 56px 20px 12px; display: flex; justify-content: space-between; align-items: flex-end">
+    <div style="display: flex; flex-direction: column; gap: 2px">
+      <div style="font-size: 14px; font-weight: 500; color: #5A6170">6 tasks placed · 3 anytime</div>
+      <h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 30px; font-weight: 700; letter-spacing: -0.5px">Oct 18 – 24</h1>
+    </div>
+    <div style="display: flex; background: #E3E7ED; border-radius: 10px; padding: 3px">
+      <a href="Main.dc.html" style="height: 32px; padding: 0 14px; display: flex; align-items: center; border-radius: 8px; font-size: 14px; font-weight: 500; color: #5A6170; text-decoration: none">Day</a>
+      <button style="height: 32px; padding: 0 14px; border: 0; border-radius: 8px; background: #FFFFFF; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; color: #15171C">Week</button>
+    </div>
+  </div>
+
+  <div style="display: flex; padding: 0 12px 0 8px; gap: 4px">
+    <div style="width: 30px; flex-shrink: 0"></div>
+    <div style="flex: 1; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px">
+      <sc-for list="{{cols}}" as="c" hint-placeholder-count="7">
+        <a href="Main.dc.html" style="height: 58px; border-radius: 12px; background: {{c.hbg}}; color: {{c.hfg}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; text-decoration: none">
+          <span style="font-size: 11px; font-weight: 500">{{c.w}}</span>
+          <span style="font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 600">{{c.n}}</span>
+          <span style="font-size: 10px; font-weight: 600; opacity: 0.8">{{c.any}}</span>
+        </a>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="flex: 1; display: flex; padding: 10px 12px 0 8px; gap: 4px; min-height: 0">
+    <div style="width: 30px; position: relative; flex-shrink: 0">
+      <sc-for list="{{hours}}" as="h" hint-placeholder-count="7">
+        <div style="position: absolute; right: 0; top: {{h.top}}; font-size: 10px; font-weight: 500; color: #7A8190; transform: translateY(-6px)">{{h.label}}</div>
+      </sc-for>
+    </div>
+    <div style="flex: 1; position: relative">
+      <sc-for list="{{hours}}" as="h" hint-placeholder-count="7">
+        <div style="position: absolute; left: 0; right: 0; top: {{h.top}}; border-top: 1px solid #DDE2E9"></div>
+      </sc-for>
+      <div style="position: absolute; inset: 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px">
+        <sc-for list="{{cols}}" as="c" hint-placeholder-count="7">
+          <div style="position: relative">
+            <sc-for list="{{c.blocks}}" as="b" hint-placeholder-count="2">
+              <div style="position: absolute; left: 0; right: 0; top: {{b.top}}; height: {{b.h}}; background: {{b.bg}}; color: {{b.fg}}; border-radius: 6px; padding: 3px 4px; box-sizing: border-box; overflow: hidden; font-size: 10px; font-weight: 600; line-height: 1.2">{{b.label}}</div>
+            </sc-for>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 14px; padding: 10px 20px; font-size: 12px; color: #5A6170">
+    <span style="display: flex; align-items: center; gap: 5px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #2A2E36"></span>Work</span>
+    <span style="display: flex; align-items: center; gap: 5px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #D5DAE2"></span>Routine</span>
+    <span style="display: flex; align-items: center; gap: 5px"><span style="width: 10px; height: 10px; border-radius: 3px; background: {{accent}}"></span>Tasks</span>
+  </div>
+
+  <a href="AddTask.dc.html" aria-label="Add task" style="position: absolute; right: 20px; bottom: 104px; width: 60px; height: 60px; border-radius: 20px; background: #15171C; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(21,23,28,0.25)">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+  </a>
+
+  <nav style="height: 84px; flex-shrink: 0; background: #FFFFFF; border-top: 1px solid #E3E7ED; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding-bottom: 20px; box-sizing: border-box">
+    <a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #7A8190; font-size: 11px; font-weight: 500">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+      Today
+    </a>
+    <a href="Week.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: {{accent}}; font-size: 11px; font-weight: 600">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg>
+      Week
+    </a>
+    <a href="Chores.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #7A8190; font-size: 11px; font-weight: 500">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"></path><path d="M5 10v10h14V10"></path><path d="M10 20v-5h4v5"></path></svg>
+      Chores
+    </a>
+    <a href="Insights.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #7A8190; font-size: 11px; font-weight: 500">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"></path></svg>
+      Time
+    </a>
+    <a href="Schedule.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #7A8190; font-size: 11px; font-weight: 500">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h7"></path></svg>
+      Routine
+    </a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#2F5BEA","options":["#2F5BEA","#0F7B6C","#7C3AED","#D9480F"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const accent = this.props.accent ?? '#2F5BEA';
+    const px = 36, origin = 8;
+    const k = { w: ['#2A2E36', '#FFFFFF'], r: ['#D5DAE2', '#15171C'], t: [accent, '#FFFFFF'] };
+    const b = (s, e, kind, label) => ({ top: ((s - origin) * px + 1) + 'px', h: ((e - s) * px - 2) + 'px', bg: k[kind][0], fg: k[kind][1], label });
+    const work = b(9, 17, 'w', 'Work');
+    const gym = b(18, 19, 'r', 'Gym');
+    const data = [
+      ['S', 18, '2 any', [b(9, 10, 'r', 'Gym'), b(10.5, 11.25, 't', 'Groc.'), b(12, 13, 'r', 'Lunch'), b(13.5, 14.5, 't', 'Clean')]],
+      ['M', 19, '', [work, gym, b(19.5, 20.5, 't', 'Laundry')]],
+      ['T', 20, '1 any', [work, b(17.5, 18.5, 't', 'Dentist')]],
+      ['W', 21, '', [work, gym]],
+      ['T', 22, '', [work, b(17.5, 18.25, 't', 'Haircut')]],
+      ['F', 23, '', [work, gym, b(19.5, 21, 't', 'Dinner')]],
+      ['S', 24, '', [b(10, 11, 't', 'Car wash')]]
+    ];
+    const cols = data.map((d, i) => ({ w: d[0], n: String(d[1]), any: d[2] || ' ', hbg: i === 0 ? accent : '#FFFFFF', hfg: i === 0 ? '#FFFFFF' : '#15171C', blocks: d[3] }));
+    const labels = ['8a', '10a', '12p', '2p', '4p', '6p', '8p'];
+    const hours = labels.map((l, i) => ({ label: l, top: (i * 2 * px) + 'px' }));
+    return { accent, cols, hours };
+  }
+}
+</script>
+</body>
+</html>

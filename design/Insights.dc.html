@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Where your time went</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&amp;family=DM+Sans:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#2F5BEA}a:hover{color:#1E3FB0}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #F3F5F8; font-family: 'DM Sans', sans-serif; color: #15171C; display: flex; flex-direction: column; overflow: hidden">
+
+  <div style="padding: 56px 20px 10px; display: flex; justify-content: space-between; align-items: flex-end">
+    <div style="display: flex; flex-direction: column; gap: 2px">
+      <div style="font-size: 14px; font-weight: 500; color: #5A6170">{{range}}</div>
+      <h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 34px; font-weight: 700; letter-spacing: -0.5px">Time</h1>
+    </div>
+    <div style="display: flex; background: #E3E7ED; border-radius: 10px; padding: 3px">
+      <sc-for list="{{periods}}" as="p" hint-placeholder-count="2">
+        <button onClick="{{p.pick}}" aria-pressed="{{p.on}}" style="height: 32px; padding: 0 14px; border: 0; border-radius: 8px; background: {{p.bg}}; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: {{p.weight}}; color: {{p.fg}}">{{p.label}}</button>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="margin: 0 16px 12px; height: 56px; border-radius: 16px; background: #15171C; color: #FFFFFF; display: flex; align-items: center; justify-content: space-between; padding: 0 8px 0 16px">
+    <div style="display: flex; align-items: center; gap: 10px">
+      <span style="width: 10px; height: 10px; border-radius: 50%; background: #F97316"></span>
+      <span style="font-size: 15px; font-weight: 600">Driving</span>
+      <span style="font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 500; opacity: 0.8">0:12:40</span>
+    </div>
+    <button style="height: 40px; padding: 0 16px; border: 0; border-radius: 12px; background: #FFFFFF; color: #15171C; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600">Stop</button>
+  </div>
+
+  <div style="margin: 0 16px 12px; background: #FFFFFF; border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 10px">
+    <div style="display: flex; align-items: baseline; gap: 6px">
+      <span style="font-family: 'Space Grotesk', sans-serif; font-size: 30px; font-weight: 700">{{tracked}}</span>
+      <span style="font-size: 14px; color: #5A6170">{{trackedOf}}</span>
+    </div>
+    <div style="display: flex; height: 14px; border-radius: 7px; overflow: hidden; gap: 2px">
+      <sc-for list="{{cats}}" as="c" hint-placeholder-count="6">
+        <div style="flex: {{c.flex}}; background: {{c.color}}"></div>
+      </sc-for>
+    </div>
+    <div style="display: flex; flex-direction: column">
+      <sc-for list="{{cats}}" as="c" hint-placeholder-count="6">
+        <div style="min-height: 38px; display: flex; align-items: center; gap: 10px; border-top: 1px solid #EEF1F5">
+          <span style="width: 10px; height: 10px; border-radius: 3px; background: {{c.color}}; flex-shrink: 0"></span>
+          <span style="flex: 1; font-size: 15px; font-weight: 500">{{c.name}}</span>
+          <span style="font-size: 12px; color: {{c.deltaColor}}">{{c.delta}}</span>
+          <span style="width: 64px; text-align: right; font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 600">{{c.time}}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="margin: 0 16px; background: #FFFFFF; border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 10px">
+    <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; color: #5A6170">Planned vs. actual</div>
+    <p style="margin: 0; font-size: 15px; line-height: 1.4">Groceries took <b>1 hr 05 min</b> on average the last 4 times — you planned 45 min.</p>
+    <div style="display: flex; gap: 8px">
+      <button style="flex: 1; height: 44px; border: 0; border-radius: 12px; background: {{accent}}; color: #FFFFFF; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600">Plan 1 hr next time</button>
+      <button style="height: 44px; padding: 0 16px; border: 0; border-radius: 12px; background: #F3F5F8; color: #15171C; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600">Keep</button>
+    </div>
+  </div>
+
+  <div style="flex: 1"></div>
+
+  <nav style="height: 84px; flex-shrink: 0; background: #FFFFFF; border-top: 1px solid #E3E7ED; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding-bottom: 20px; box-sizing: border-box">
+    <a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #7A8190; font-size: 11px; font-weight: 500">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+      Today
+    </a>
+    <a href="Week.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #7A8190; font-size: 11px; font-weight: 500">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg>
+      Week
+    </a>
+    <a href="Chores.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #7A8190; font-size: 11px; font-weight: 500">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"></path><path d="M5 10v10h14V10"></path><path d="M10 20v-5h4v5"></path></svg>
+      Chores
+    </a>
+    <a href="Insights.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: {{accent}}; font-size: 11px; font-weight: 600">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"></path></svg>
+      Time
+    </a>
+    <a href="Schedule.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #7A8190; font-size: 11px; font-weight: 500">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h7"></path></svg>
+      Routine
+    </a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#2F5BEA","options":["#2F5BEA","#0F7B6C","#7C3AED","#D9480F"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { period: 'week' };
+  }
+  renderVals() {
+    const accent = this.props.accent ?? '#2F5BEA';
+    const period = this.state.period;
+    const fmt = (m) => Math.floor(m / 60) + 'h' + (m % 60 ? ' ' + (m % 60) + 'm' : '');
+    const week = [
+      ['Work', 2400, '#15171C', '—'],
+      ['Driving', 440, '#F97316', '+1h 10m'],
+      ['Gym', 240, '#8A93A3', '—'],
+      ['Chores', 330, accent, '−40m'],
+      ['Errands', 190, '#93AEF8', '+25m'],
+      ['Other', 520, '#D5DAE2', '']
+    ];
+    const month = [
+      ['Work', 9600, '#15171C', '—'],
+      ['Driving', 1580, '#F97316', '+3h'],
+      ['Gym', 960, '#8A93A3', '−1h'],
+      ['Chores', 1410, accent, '+50m'],
+      ['Errands', 720, '#93AEF8', '—'],
+      ['Other', 2150, '#D5DAE2', '']
+    ];
+    const rows = period === 'week' ? week : month;
+    const total = rows.reduce((s, r) => s + r[1], 0);
+    const cats = rows.map((r) => ({
+      name: r[0], flex: String(r[1]), color: r[2], time: fmt(r[1]), delta: r[3],
+      deltaColor: r[3].startsWith('+') ? '#9A3412' : '#5A6170'
+    }));
+    const periods = [['week', 'Week'], ['month', 'Month']].map(([id, label]) => {
+      const on = id === period;
+      return { label, on: on ? 'true' : 'false', bg: on ? '#FFFFFF' : 'transparent', fg: on ? '#15171C' : '#5A6170', weight: on ? '600' : '500', pick: () => this.setState({ period: id }) };
+    });
+    return {
+      accent, cats, periods,
+      range: period === 'week' ? 'Oct 12 – 18 · vs last week' : 'September · vs August',
+      tracked: fmt(total),
+      trackedOf: period === 'week' ? 'tracked of 112h awake' : 'tracked of 480h awake'
+    };
+  }
+}
+</script>
+</body>
+</html>
