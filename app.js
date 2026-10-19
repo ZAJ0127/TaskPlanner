@@ -94,6 +94,7 @@ const P = {
   chores: '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-5h4v5"/>',
   time: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
   routine: '<path d="M4 6h16M4 12h10M4 18h7"/>',
+  shop: '<path d="M3 4h2l2.4 11h11.2L21 8H6.2"/><circle cx="9" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/>',
   plus: '<path d="M12 5v14M5 12h14"/>',
   check: '<path d="M5 12l5 5 9-10"/>',
   left: '<path d="M15 18l-6-6 6-6"/>',
@@ -115,6 +116,8 @@ function defaultState() {
     tasks: [],
     chores: [],
     entries: [],
+    shopping: [],
+    shopHistory: [],
     hints: {},
     dismissed: {}
   };
@@ -379,9 +382,10 @@ const ui = {
   weekOf: todayStr(),
   timePeriod: 'week',
   timeOffset: 0,
+  shopList: 'grocery',
   insights: []
 };
-const TABS = [['today', 'Today'], ['week', 'Week'], ['chores', 'Chores'], ['time', 'Time'], ['routine', 'Routine']];
+const TABS = [['today', 'Today'], ['week', 'Week'], ['chores', 'Chores'], ['shop', 'Shop'], ['time', 'Time'], ['routine', 'Routine']];
 const appEl = $('#app'), navEl = $('#nav'), sheetRoot = $('#sheet-root'), toastEl = $('#toast');
 
 /* ---------- Shared bits ---------- */
@@ -725,9 +729,158 @@ function viewRoutine() {
     <button class="fab" data-act="new-routine" aria-label="Add routine block">${svg('plus', 26, 2.4)}</button>`;
 }
 
+/* ---------- Shopping ---------- */
+// Keywords are comma-separated; multi-word ones are checked first, then single words
+// from the last word of the item backwards ("orange juice" -> juice -> Drinks).
+const SECTIONS = [
+  ['produce', 'Produce', 'apple,banana,lettuce,onion,tomato,potato,carrot,fruit,berry,berries,strawberr,blueberr,raspberr,grape,spinach,avocado,lemon,lime,garlic,pepper,cucumber,broccoli,celery,mushroom,salad,cilantro,parsley,herbs,ginger,orange,mango,peach,pear,corn,kale,zucchini,eggplant,watermelon,melon,cabbage,squash,jalapeno,cauliflower'],
+  ['meat', 'Meat & seafood', 'chicken,beef,pork,turkey,fish,salmon,tuna,bacon,sausage,shrimp,steak,lamb,ham,wings,thighs,breast,hot dog,ground beef,ground turkey'],
+  ['dairy', 'Dairy & eggs', 'milk,cheese,yogurt,yoghurt,butter,egg,eggs,cream,creamer,sour cream,cream cheese,half and half'],
+  ['bakery', 'Bakery', 'bread,bagel,tortilla,bun,buns,roll,rolls,muffin,croissant,pita,cake,donut'],
+  ['frozen', 'Frozen', 'frozen,pizza,fries,waffle,waffles,popsicle,ice cream,ice'],
+  ['pantry', 'Pantry', 'rice,pasta,noodle,noodles,spaghetti,bean,beans,cereal,oats,oatmeal,flour,sugar,oil,vinegar,sauce,salsa,ketchup,mustard,mayo,spice,salt,honey,coffee,tea,snack,snacks,chips,cracker,crackers,cookie,cookies,soup,jam,syrup,nuts,almonds,peanut butter,olive oil,granola,bar,bars'],
+  ['drinks', 'Drinks', 'water,soda,juice,gatorade,beer,wine,seltzer,sparkling water,energy drink,coke,sprite'],
+  ['household', 'Household', 'towel,towels,tissue,tissues,soap,detergent,shampoo,conditioner,toothpaste,toothbrush,sponge,sponges,foil,bleach,cleaner,wipes,deodorant,razor,razors,battery,batteries,lightbulb,napkins,toilet paper,paper towels,trash bags,dish soap,plastic wrap'],
+  ['other', 'Other', '']
+];
+const SECTION_KW = SECTIONS.map(([id, , kw]) => [id, kw ? kw.split(',') : []]);
+function guessSection(name) {
+  const n = ' ' + name.toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim() + ' ';
+  let best = null;
+  for (const [id, kws] of SECTION_KW) {
+    for (const k of kws) {
+      if (k.includes(' ') && n.includes(' ' + k + ' ') && (!best || k.length > best[1])) best = [id, k.length];
+    }
+  }
+  if (best) return best[0];
+  const words = n.trim().split(' ').reverse();
+  for (const w of words) {
+    for (const [id, kws] of SECTION_KW) {
+      for (const k of kws) {
+        if (!k.includes(' ') && w.startsWith(k) && w.length - k.length <= 3) return id;
+      }
+    }
+  }
+  return 'other';
+}
+function parseItem(text) {
+  let name = text.trim(), qty = '';
+  let m = name.match(/^(\d+(?:\.\d+)?\s*(?:x|lb|lbs|oz|kg|g|pk|pack|dozen|gal|bottles?|cans?|bags?|boxes?)?)\s+(.+)$/i);
+  if (m) { qty = m[1]; name = m[2]; }
+  else if ((m = name.match(/^(.+?)\s+x\s*(\d+)$/i))) { name = m[1]; qty = m[2]; }
+  return { name: name.charAt(0).toUpperCase() + name.slice(1), qty };
+}
+function addShopItem(text, list) {
+  const { name, qty } = parseItem(text);
+  if (!name) return null;
+  const dup = S.shopping.find((i) => !i.done && i.list === list && i.name.toLowerCase() === name.toLowerCase());
+  if (dup) { if (qty) dup.qty = qty; save(); return dup; }
+  const item = { id: uid(), name, qty, list, section: list === 'grocery' ? guessSection(name) : 'other', note: '', done: false, added: Date.now() };
+  S.shopping.push(item);
+  rememberShop(name, list);
+  save();
+  return item;
+}
+function rememberShop(name, list) {
+  S.shopHistory = [{ name, list }, ...(S.shopHistory || []).filter((h) => !(h.name.toLowerCase() === name.toLowerCase() && h.list === list))].slice(0, 40);
+}
+
+function viewShop() {
+  const list = ui.shopList;
+  const items = S.shopping.filter((i) => i.list === list);
+  const open = items.filter((i) => !i.done), got = items.filter((i) => i.done);
+  const counts = { grocery: S.shopping.filter((i) => i.list === 'grocery' && !i.done).length, other: S.shopping.filter((i) => i.list === 'other' && !i.done).length };
+  const onList = new Set(open.map((i) => i.name.toLowerCase()));
+  const recent = (S.shopHistory || []).filter((h) => h.list === list && !onList.has(h.name.toLowerCase())).slice(0, 10);
+
+  const row = (i) => `<div class="row ${i.done ? 'done' : ''}">
+      <button class="chk ${i.done ? 'on' : ''}" data-act="shop-toggle" data-id="${i.id}" aria-label="${esc((i.done ? 'Put back: ' : 'Got it: ') + i.name)}">${svg('check', 14, 3)}</button>
+      <button class="row-main" data-act="shop-edit" data-id="${i.id}"><span class="t">${esc(i.name)}</span>${i.qty || i.note ? `<span class="s">${esc([i.qty, i.note].filter(Boolean).join(' · '))}</span>` : ''}</button></div>`;
+
+  let html = `<header class="hdr"><div><div class="sub">${counts.grocery + counts.other ? (counts.grocery + counts.other) + ' to get' : 'All caught up'}</div><h1>Shopping</h1></div></header>
+    <div class="seg full" role="group" aria-label="List" style="margin-bottom:14px">
+      <button class="${list === 'grocery' ? 'on' : ''}" data-act="shop-list" data-v="grocery" aria-pressed="${list === 'grocery'}">Groceries${counts.grocery ? ' · ' + counts.grocery : ''}</button>
+      <button class="${list === 'other' ? 'on' : ''}" data-act="shop-list" data-v="other" aria-pressed="${list === 'other'}">Other things${counts.other ? ' · ' + counts.other : ''}</button>
+    </div>
+    <form class="card" id="shop-add" style="display:flex;gap:8px;padding:10px" autocomplete="off">
+      <input class="inp" id="shop-input" placeholder="${list === 'grocery' ? 'Add an item, e.g. 2 milk' : 'Add something to buy'}" aria-label="New item" enterkeyhint="done" maxlength="80">
+      <button class="btn dark small" type="submit">Add</button>
+    </form>`;
+
+  if (recent.length) {
+    html += `<div class="label" style="margin:0 4px 8px">Bought before · tap to add</div>
+      <div class="quick">${recent.map((h) => `<button data-act="shop-readd" data-name="${esc(h.name)}">${svg('plus', 14, 2.6)}${esc(h.name)}</button>`).join('')}</div>`;
+  }
+
+  if (!items.length) {
+    html += `<section class="card"><p class="empty">${list === 'grocery'
+      ? 'Your grocery list is empty. Type items above — they get sorted by store section automatically.'
+      : 'Nothing here yet. Add things you need to pick up — a phone charger, new shoes, a gift.'}</p></section>`;
+  }
+
+  if (open.length) {
+    if (list === 'grocery') {
+      for (const [id, label] of SECTIONS) {
+        const its = open.filter((i) => i.section === id);
+        if (!its.length) continue;
+        html += `<section class="card"><div class="card-h"><h2>${label}</h2><span class="label" style="text-transform:none;letter-spacing:0;font-weight:500">${its.length}</span></div>${its.map(row).join('')}</section>`;
+      }
+    } else {
+      html += `<section class="card">${[...open].sort((a, b) => a.added - b.added).map(row).join('')}</section>`;
+    }
+  }
+
+  if (got.length) {
+    html += `<section class="card"><div class="card-h"><h2>In the cart · ${got.length}</h2>
+      <button class="link" style="font-size:14px;font-weight:600;color:var(--accent)" data-act="shop-clear">Clear</button></div>${got.map(row).join('')}</section>`;
+  }
+
+  if (list === 'grocery' && open.length) {
+    const tripTask = S.tasks.find((t) => !t.done && t.title.toLowerCase() === 'groceries' && t.date >= todayStr());
+    html += tripTask
+      ? `<div class="note" style="margin-bottom:14px">${svg('week', 16)}<span>Grocery trip planned for ${esc(relDay(tripTask.date).replace(/^(Today|Tomorrow)$/, (m) => m.toLowerCase()))}${tripTask.start != null ? ' at ' + fmtTime(tripTask.start) : ''}.</span></div>`
+      : `<button class="btn primary" data-act="shop-trip" style="margin-bottom:14px">${svg('week', 18)} Plan a grocery trip</button>`;
+  }
+  return html;
+}
+
+function shopItemSheet(id) {
+  const i = S.shopping.find((x) => x.id === id); if (!i) return null;
+  const f = { name: i.name, qty: i.qty || '', note: i.note || '', list: i.list, section: i.section };
+  return {
+    label: 'Edit item',
+    render() {
+      return `${sheetTop('Edit item')}
+        <label class="fld"><span>Item</span><input class="inp" data-f="name" value="${esc(f.name)}" maxlength="80" autocomplete="off"></label>
+        <div class="fld"><div class="two">
+          <label class="fld" style="margin:0"><span>How many</span><input class="inp" data-f="qty" value="${esc(f.qty)}" placeholder="e.g. 2, 1 lb" maxlength="20"></label>
+          <label class="fld" style="margin:0"><span>Note</span><input class="inp" data-f="note" value="${esc(f.note)}" placeholder="brand, size…" maxlength="60"></label></div></div>
+        <div class="fld"><span>List</span><div class="chips">${chip('Groceries', f.list === 'grocery', 'list', 'grocery')}${chip('Other things', f.list === 'other', 'list', 'other')}</div></div>
+        ${f.list === 'grocery' ? `<div class="fld"><span>Store section</span><div class="chips">${SECTIONS.map(([sid, label]) => chip(label, f.section === sid, 'section', sid)).join('')}</div></div>` : ''}
+        <div class="actions"><button class="btn primary" data-act="save">Save</button>
+        <button class="btn ghost danger" data-act="delete">Remove from list</button></div>`;
+    },
+    act(a, el) {
+      if (a === 'list') { f.list = el.dataset.v; if (f.list === 'grocery' && f.section === 'other') f.section = guessSection(f.name); return true; }
+      if (a === 'section') { f.section = el.dataset.v; return true; }
+      if (a === 'save') {
+        const name = ($('[data-f="name"]', sheetRoot).value || '').trim();
+        if (!name) { toast('Give it a name'); return false; }
+        snapshot();
+        Object.assign(i, { name, qty: f.qty.trim(), note: f.note.trim(), list: f.list, section: f.list === 'grocery' ? f.section : 'other' });
+        rememberShop(name, f.list);
+        save(); render(); return 'close';
+      }
+      if (a === 'delete') { snapshot(); S.shopping = S.shopping.filter((x) => x.id !== i.id); save(); render(); toast(i.name + ' removed', true); return 'close'; }
+      return false;
+    },
+    input(k, v) { if (k in f) f[k] = v; return false; }
+  };
+}
+
 /* ---------- Render ---------- */
 function render() {
-  const views = { today: viewToday, week: viewWeek, chores: viewChores, time: viewTime, routine: viewRoutine };
+  const views = { today: viewToday, week: viewWeek, chores: viewChores, shop: viewShop, time: viewTime, routine: viewRoutine };
   appEl.innerHTML = (views[ui.tab] || viewToday)();
   navEl.innerHTML = `<div class="tabs">${TABS.map(([id, label]) => `<a href="#${id}" class="${ui.tab === id ? 'on' : ''}" ${ui.tab === id ? 'aria-current="page"' : ''}>${svg(id)}<span>${label}</span></a>`).join('')}</div>`;
 }
@@ -801,9 +954,9 @@ function taskSheet(init = {}) {
   const t = init.id ? S.tasks.find((x) => x.id === init.id) : null;
   const key = t ? 'task:' + t.id : null;
   const f = {
-    title: t ? t.title : '',
-    dur: t ? t.durationMin : 30,
-    category: t ? t.category : 'errands',
+    title: t ? t.title : (init.title || ''),
+    dur: t ? t.durationMin : (init.dur || S.hints[(init.title || '').toLowerCase()] || 30),
+    category: t ? t.category : (init.category || 'errands'),
     mode: init.mode || (t ? (t.start == null ? 'anytime' : t.mode === 'auto' ? 'auto' : 'pick') : 'auto'),
     date: init.date || (t && t.date >= today ? t.date : (ui.date >= today ? ui.date : today)),
     start: init.start != null ? init.start : (t && t.start != null ? t.start : Math.min(roundUp(nowMin() + 30, 15), 1425)),
@@ -1166,6 +1319,7 @@ function itemSheet(key) {
             ${t.done ? '<button class="btn" data-act="undone">Mark not done</button>' : '<button class="btn primary" data-act="done">Mark done</button>'}
             ${t.done ? '' : '<button class="btn" data-act="resched">Find a new time</button>'}
             ${t.done || t.start == null ? '' : '<button class="btn" data-act="anytime">Move to Anytime</button>'}
+            ${/grocer/i.test(t.title) ? `<button class="btn" data-act="shoplist">See grocery list (${S.shopping.filter((i) => i.list === 'grocery' && !i.done).length})</button>` : ''}
             <button class="btn" data-act="edit">Edit</button>
             <button class="btn ghost danger" data-act="delete">Delete</button></div>`;
       },
@@ -1174,6 +1328,7 @@ function itemSheet(key) {
         if (a === 'undone') { uncompleteTask(t.id); return 'close'; }
         if (a === 'resched') { openSheet(taskSheet({ id: t.id, mode: 'auto' })); return false; }
         if (a === 'anytime') { snapshot(); t.start = null; t.mode = 'anytime'; if (t.date < today) t.date = today; save(); render(); toast('Moved to Anytime', true); return 'close'; }
+        if (a === 'shoplist') { ui.shopList = 'grocery'; closeSheet(); location.hash = '#shop'; return false; }
         if (a === 'edit') { openSheet(taskSheet({ id: t.id })); return false; }
         if (a === 'delete') { snapshot(); S.tasks = S.tasks.filter((x) => x.id !== t.id); save(); render(); toast('Task deleted', true); return 'close'; }
         return false;
@@ -1241,7 +1396,39 @@ appEl.addEventListener('click', (e) => {
     case 'dismiss': { const ins = ui.insights[+el.dataset.i]; if (ins) { S.dismissed[ins.id] = ins.value; save(); render(); } break; }
     case 'addcat': { const inp = $('#newcat'); const c = addCategory((inp.value || '').trim()); if (c) { render(); toast(c.name + ' added'); } break; }
     case 'export': exportData(); break;
+    case 'shop-list': ui.shopList = el.dataset.v; render(); break;
+    case 'shop-toggle': {
+      const i = S.shopping.find((x) => x.id === el.dataset.id);
+      if (i) { i.done = !i.done; save(); render(); }
+      break;
+    }
+    case 'shop-edit': { const s = shopItemSheet(el.dataset.id); if (s) openSheet(s); break; }
+    case 'shop-readd': { addShopItem(el.dataset.name, ui.shopList); render(); toast(el.dataset.name + ' added'); break; }
+    case 'shop-clear': {
+      snapshot();
+      const n = S.shopping.filter((i) => i.list === ui.shopList && i.done).length;
+      S.shopping = S.shopping.filter((i) => !(i.list === ui.shopList && i.done));
+      save(); render(); toast(n + ' item' + (n > 1 ? 's' : '') + ' cleared', true);
+      break;
+    }
+    case 'shop-trip': {
+      const n = S.shopping.filter((i) => i.list === 'grocery' && !i.done).length;
+      const dur = Math.min(120, roundUp(25 + n * 2, 15));
+      openSheet(taskSheet({ title: 'Groceries', dur, category: 'errands' }));
+      break;
+    }
   }
+});
+appEl.addEventListener('submit', (e) => {
+  if (e.target.id !== 'shop-add') return;
+  e.preventDefault();
+  const inp = $('#shop-input');
+  const text = (inp.value || '').trim();
+  if (!text) return;
+  const parts = text.split(/\s*,\s*/).filter(Boolean);
+  for (const p of parts) addShopItem(p, ui.shopList);
+  render();
+  const again = $('#shop-input'); if (again) again.focus();
 });
 appEl.addEventListener('change', (e) => {
   const el = e.target; const k = el.dataset && el.dataset.setting; if (!k) return;

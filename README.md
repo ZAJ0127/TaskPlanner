@@ -19,6 +19,7 @@ Design mockups: https://claude.ai/artifact/AQBSJFthum7T4L2X14unnw (source in `de
 | **Today** | Timeline of the day with routine blocks, tasks and chores. "Anytime" list for things with no set time. Free gaps show as "tap to add". Overdue tasks and chores appear here. |
 | **Week** | 7-day grid. Tap a day to open it. |
 | **Chores** | Repeating chores grouped as Overdue / Today / This week / Later. |
+| **Shop** | Grocery list sorted by store section, plus a separate list for other things to buy. |
 | **Time** | Time you've logged, by category, for a week or month, compared with the previous period. |
 | **Routine** | Your usual week, scheduling hours, categories, and backup/restore. |
 
@@ -38,6 +39,15 @@ Tap any task to mark it done, find a new time, move it to Anytime, edit or delet
 - When due: **Find a time for me** (placed in a free gap), **Same time each time**, or **Anytime that day**.
 - Marking one done schedules the next. Interval chores count from the day you did it.
 - Missed chores go to **Overdue** with a **Find time** button. You can also **Skip** one.
+
+## Shopping
+
+- Two lists: **Groceries** and **Other things** (chargers, gifts, clothes…).
+- Type an item and tap Add. Add several at once with commas (`bananas, eggs, bread`). A number in front sets the quantity (`2 milk`, `1 lb ground beef`).
+- Groceries are sorted into store sections (Produce, Meat, Dairy, Bakery, Frozen, Pantry, Drinks, Household) automatically. Tap an item to fix its section, quantity or note.
+- Checking an item moves it to **In the cart**. **Clear** removes those.
+- **Bought before** chips re-add things you buy often with one tap.
+- **Plan a grocery trip** opens a new Groceries task, sized to how long your list is. Tapping that task later shows **See grocery list**.
 
 ## Time tracking
 
@@ -74,6 +84,7 @@ RoutineBlock { id, name, category, days[0-6], start, end }      // times = minut
 Task         { id, title, durationMin, category, date, start|null, mode: auto|fixed|anytime, done, actualMin? }
 Chore        { id, title, durationMin, category, repeat, mode, time?, nextDue, slot?, doneDates[], history[] }
 TimeEntry    { id, category, date, start, minutes, note, source: manual|task|chore }
+ShopItem     { id, name, qty, note, list: grocery|other, section, done }
 ```
 
 Use **Routine → Export backup** now and then. Clearing Safari's website data deletes everything.
